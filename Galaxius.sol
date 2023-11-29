@@ -1,4 +1,8 @@
 /**
+ *Submitted for verification at BscScan.com on 2023-11-29
+*/
+
+/**
  *Submitted for verification at BscScan.com on 2023-11-25
 */
 
@@ -957,7 +961,7 @@ contract Galaxius is Ownable {
         address _nodeNFTAddress,
         uint256 _seed
     )  {
-        seedId = block.timestamp.add(block.number.add(_seed));
+        seedId = _seed.add(randNumberProbability());
         gaxToken = IERC20(_gaxTokenAddress);
         nodeNFTAddress = _nodeNFTAddress;
 
@@ -989,34 +993,14 @@ contract Galaxius is Ownable {
         gameLevelRequiredAmount[GAMELEVEL.LV12] = [minRequiredGaxAmount, 10000 * 10 ** 18];
         gameLevelRequiredAmount[GAMELEVEL.LV13] = [minRequiredGaxAmount, 5000 * 10 ** 18];
     }
-
-    function setMagnification(uint256 _magnification) external onlyOwner {
-        magnification = _magnification;
-    }
     
     function setGameLevelRequiredAmount(GAMELEVEL _level, uint256[] memory betData) external onlyOwner {
         gameLevelRequiredAmount[_level] = betData;
     }
 
-    function setGameLevelMultiple(GAMELEVEL _level, uint _multi, uint _bigPro, uint _smallPro) external onlyOwner {
-        gameLevelMultiple[_level]= Multiple(_multi, _bigPro, _smallPro);
-    }
-
     function interest(address tokenAddress, address account, uint256 amount) external onlyOwner {
         IERC20(tokenAddress).approve(address(this), amount);
         IERC20(tokenAddress).transferFrom(address(this), account, amount);
-    }
-
-    function setFee(uint256 _successFee) external onlyOwner {
-        successFee = _successFee;
-    }
-
-    function setRecommendFee(uint256 _recommendFee) external onlyOwner {
-        recommendFee = _recommendFee;
-    }
-
-    function setDividentFee(uint256 _dividentFee) external onlyOwner {
-        dividentFee = _dividentFee;
     }
 
     function setReceivedAddress(address _receivedAddress) external onlyOwner {
@@ -1053,9 +1037,9 @@ contract Galaxius is Ownable {
             GAMELEVEL preLevel = GAMELEVEL(uint8(_level) - 1);
             require(accountClearance[msg.sender][preLevel], "Must pass the previous level first");
         }
-        seedId = seedId.add(randNumberProbability());
+        seedNumber();
         uint256 probability = randNumberProbability();
-        seedId = seedId.add(probability);
+        seedNumber();
         REWARDTYPES rewardTypes = getRewardTypes(probability, _level);
         accountGameInfo[msg.sender].push(AccountGame(
             _level,
@@ -1101,13 +1085,22 @@ contract Galaxius is Ownable {
         accountGameItem._rewardTime = block.timestamp;
         accountGameHistory[msg.sender].push(accountGameItem);
         accountGameInfo[msg.sender].pop();
-        seedId = seedId.add(randNumberProbability());
+        seedNumber();
     }
 
     function initalLevel(address account) private {
         uint8 total = uint8(13);
         for(uint8 i = 0; i < total; i++) {
            accountClearance[account][GAMELEVEL(i)] = false;
+        }
+    }
+
+    function seedNumber() private {
+        uint256 randNum = randNumberProbability();
+        if(seedId.add(randNum) > seedId) {
+            seedId = seedId.add(randNum);
+        } else {
+            seedId = block.timestamp.add(block.number);
         }
     }
 
